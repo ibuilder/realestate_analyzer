@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate Analyzer - SCRUM</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+        }
+        .section-title {
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: 600;
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255,255,255,0.7);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .results-container {
+            display: none;
+        }
+        .usage-card {
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .usage-card:hover {
+            transform: translateY(-5px);
+        }
+        .selected-usage {
+            border: 3px solid #0d6efd;
+            transform: translateY(-5px);
+        }
+        .task-item {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 5px solid #0d6efd;
+        }
+        .unit-card {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="pb-3 mb-4 border-bottom">
+            <div class="d-flex align-items-center">
+                <span class="fs-4 me-2"><i class="fas fa-building"></i></span>
+                <h1 class="fs-4">Real Estate Analyzer - SCRUM Edition</h1>
+            </div>
+        </header>
+
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i> This application analyzes real estate properties to determine optimal functional use, FAR calculations, and generates financial proformas.
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-list-check me-2"></i> SCRUM Workflow
+                    </div>
+
+                    <!-- Step 5: Proforma Output -->
+                    <div class="tab-pane fade" id="step5">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-file-excel me-2"></i> Step 5: Proforma Output
+                            </div>
+                            <div class="card-body">
+                                <h5 class="section-title">Generate Proforma Excel File</h5>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="alert alert-success">
+                                            <div class="d-flex">
+                                                <div class="me-3">
+                                                    <i class="fas fa-check-circle fa-2x"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="alert-heading">Analysis Complete!</h5>
+                                                    <p>Your real estate analysis is complete. Click the button below to generate a comprehensive Excel proforma.</p>
+                                                    <p>The proforma will include:</p>
+                                                    <ul>
+                                                        <li>Property summary with FAR analysis</li>
+                                                        <li>Unit breakdown with sizes and rental rates</li>
+                                                        <li>Income and expense projections</li>
+                                                        <li>Development cost breakdown</li>
+                                                        <li>5-year cash flow projection</li>
+                                                        <li>Investment metrics (ROI, IRR, NPV)</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">Proforma Settings</h5>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Projection Period (Years)</label>
+                                                    <select class="form-select" id="projectionYears">
+                                                        <option value="5">5 Years</option>
+                                                        <option value="10">10 Years</option>
+                                                        <option value="15">15 Years</option>
+                                                        <option value="20">20 Years</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Annual Rent Growth (%)</label>
+                                                    <input type="number" class="form-control" id="rentGrowth" placeholder="3" value="3">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Annual Expense Growth (%)</label>
+                                                    <input type="number" class="form-control" id="expenseGrowth" placeholder="2" value="2">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Exit Cap Rate (%)</label>
+                                                    <input type="number" step="0.1" class="form-control" id="exitCapRate" placeholder="5.5" value="5.5">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Discount Rate (%)</label>
+                                                    <input type="number" step="0.1" class="form-control" id="discountRate" placeholder="7" value="7">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">Investment Metrics</h5>
+                                                <div class="alert alert-primary">
+                                                    <div class="row mb-2">
+                                                        <div class="col-8">Return on Investment (ROI):</div>
+                                                        <div class="col-4 text-end"><span id="roiMetric">0.00</span>%</div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-8">Internal Rate of Return (IRR):</div>
+                                                        <div class="col-4 text-end"><span id="irrMetric">0.00</span>%</div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-8">Net Present Value (NPV):</div>
+                                                        <div class="col-4 text-end">$<span id="npvMetric">0</span></div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-8">Cash on Cash Return (Year 1):</div>
+                                                        <div class="col-4 text-end"><span id="cocMetric">0.00</span>%</div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-8">Debt Service Coverage Ratio:</div>
+                                                        <div class="col-4 text-end"><span id="dscrMetric">0.00</span></div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-8">Payback Period:</div>
+                                                        <div class="col-4 text-end"><span id="paybackMetric">0.0</span> years</div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-grid gap-2">
+                                                    <button type="button" class="btn btn-primary" id="calculateMetricsBtn">
+                                                        <i class="fas fa-calculator me-2"></i> Calculate Metrics
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-12">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">Excel File Configuration</h5>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Project Name</label>
+                                                        <input type="text" class="form-control" id="projectName" placeholder="My Real Estate Project">
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">File Format</label>
+                                                        <select class="form-select" id="fileFormat">
+                                                            <option value="xlsx">Excel (.xlsx)</option>
+                                                            <option value="csv">CSV (.csv)</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Include Sheets</label>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="includePropertySummary" checked>
+                                                            <label class="form-check-label" for="includePropertySummary">Property Summary</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="includeUnitBreakdown" checked>
+                                                            <label class="form-check-label" for="includeUnitBreakdown">Unit Breakdown</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="includeFinancialAnalysis" checked>
+                                                            <label class="form-check-label" for="includeFinancialAnalysis">Financial Analysis</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="includeDevelopmentCosts" checked>
+                                                            <label class="form-check-label" for="includeDevelopmentCosts">Development Costs</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="includeCashFlow" checked>
+                                                            <label class="form-check-label" for="includeCashFlow">Cash Flow Projection</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Advanced Options</label>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="includeCharts" checked>
+                                                            <label class="form-check-label" for="includeCharts">Include Charts and Graphs</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="includeMacros">
+                                                            <label class="form-check-label" for="includeMacros">Include Interactive Elements (Macros)</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="includeSensitivityAnalysis">
+                                                            <label class="form-check-label" for="includeSensitivityAnalysis">Include Sensitivity Analysis</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="includeExecutiveSummary" checked>
+                                                            <label class="form-check-label" for="includeExecutiveSummary">Include Executive Summary</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="passwordProtect">
+                                                            <label class="form-check-label" for="passwordProtect">Password Protect</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-grid gap-2 mt-3">
+                                                    <button type="button" class="btn btn-success" id="generateExcelBtn">
+                                                        <i class="fas fa-file-excel me-2"></i> Generate Proforma Excel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-4">
+                                    <button type="button" class="btn btn-secondary" id="step5Back"><i class="fas fa-arrow-left"></i> Back</button>
+                                    <button type="button" class="btn btn-primary" id="finishBtn">Finish <i class="fas fa-check"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Excel Generated Modal -->
+    <div class="modal fade" id="excelGeneratedModal" tabindex="-1" aria-labelledby="excelGeneratedModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="excelGeneratedModalLabel"><i class="fas fa-check-circle me-2"></i> Excel Proforma Generated</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-file-excel fa-5x text-success mb-3"></i>
+                        <h4>Your Excel proforma has been successfully generated!</h4>
+                        <p class="text-muted">Below is a preview of what's included in your file.</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <i class="fas fa-table me-2"></i> Included Sheets
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-group">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Property Summary
+                                            <span class="badge bg-primary rounded-pill"><i class="fas fa-check"></i></span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Unit Breakdown
+                                            <span class="badge bg-primary rounded-pill"><i class="fas fa-check"></i></span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Financial Analysis
+                                            <span class="badge bg-primary rounded-pill"><i class="fas fa-check"></i></span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Development Costs
+                                            <span class="badge bg-primary rounded-pill"><i class="fas fa-check"></i></span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Cash Flow Projection
+                                            <span class="badge bg-primary rounded-pill"><i class="fas fa-check"></i></span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <i class="fas fa-chart-bar me-2"></i> Key Metrics Included
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <td>Floor Area Ratio (FAR)</td>
+                                            <td><span id="modalFAR">0.00</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Net Operating Income</td>
+                                            <td>$<span id="modalNOI">0</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Cap Rate</td>
+                                            <td><span id="modalCapRate">0.00</span>%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Project Cost</td>
+                                            <td>$<span id="modalTotalCost">0</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>IRR (10-Year)</td>
+                                            <td><span id="modalIRR">0.00</span>%</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="downloadExcelBtn">
+                        <i class="fas fa-download me-2"></i> Download Excel File
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        // SCRUM Navigation Logic
+        $(document).ready(function() {
+            // Step navigation
+            $('#scrumSteps a').on('click', function(e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+
+            // Next buttons
+            $('#step1Next').on('click', function() {
+                $('#scrumSteps a[href="#step2"]').tab('show');
+                $('#task1').prop('checked', true);
+            });
+            
+            $('#step2Next').on('click', function() {
+                $('#scrumSteps a[href="#step3"]').tab('show');
+                $('#task2').prop('checked', true);
+            });
+            
+            $('#step3Next').on('click', function() {
+                $('#scrumSteps a[href="#step4"]').tab('show');
+                $('#task3').prop('checked', true);
+            });
+            
+            $('#step4Next').on('click', function() {
+                $('#scrumSteps a[href="#step5"]').tab('show');
+                $('#task4').prop('checked', true);
+            });
+
+            // Back buttons
+            $('#step2Back').on('click', function() {
+                $('#scrumSteps a[href="#step1"]').tab('show');
+            });
+            
+            $('#step3Back').on('click', function() {
+                $('#scrumSteps a[href="#step2"]').tab('show');
+            });
+            
+            $('#step4Back').on('click', function() {
+                $('#scrumSteps a[href="#step3"]').tab('show');
+            });
+            
+            $('#step5Back').on('click', function() {
+                $('#scrumSteps a[href="#step4"]').tab('show');
+            });
+
+            // Functional use selection
+            $('.usage-card').on('click', function() {
+                $('.usage-card').removeClass('selected-usage');
+                $(this).addClass('selected-usage');
+            });
+
+            // Unit Management
+            $('#addUnitBtn').on('click', function() {
+                const unitCard = $('#unitList .unit-card').first().clone();
+                unitCard.find('input').val('');
+                unitCard.find('select').val('studio');
+                $('#unitList').append(unitCard);
+                
+                // Re-bind remove unit button
+                bindRemoveUnitButtons();
+            });
+            
+            function bindRemoveUnitButtons() {
+                $('.remove-unit-btn').off('click').on('click', function() {
+                    if ($('#unitList .unit-card').length > 1) {
+                        $(this).closest('.unit-card').remove();
+                    } else {
+                        alert('You need at least one unit type.');
+                    }
+                });
+            }
+            
+            bindRemoveUnitButtons();
+
+            // Calculate FAR Button
+            $('#calculateFARBtn').on('click', function() {
+                $('#loading').show();
+                
+                // Simulate calculation delay
+                setTimeout(function() {
+                    const lotSize = parseFloat($('#lotSize').val()) || 10000;
+                    const maxFAR = parseFloat($('#maxFAR').val()) || 2.5;
+                    const maxBuildableArea = lotSize * maxFAR;
+                    
+                    // Display results
+                    $('#maxBuildableArea').text(maxBuildableArea.toLocaleString());
+                    $('#currentFAR').text('0.0');
+                    $('#farIncrease').text('100%');
+                    
+                    $('#loading').hide();
+                }, 1000);
+            });
+
+            // Calculate Financial Metrics Button
+            $('#calculateMetricsBtn').on('click', function() {
+                $('#loading').show();
+                
+                // Simulate calculation delay
+                setTimeout(function() {
+                    // These would typically be calculated based on inputs
+                    $('#roiMetric').text('15.30');
+                    $('#irrMetric').text('12.75');
+                    $('#npvMetric').text('2,450,000');
+                    $('#cocMetric').text('7.50');
+                    $('#dscrMetric').text('1.35');
+                    $('#paybackMetric').text('6.2');
+                    
+                    $('#loading').hide();
+                }, 1000);
+            });
+
+            // Generate Excel Button
+            $('#generateExcelBtn').on('click', function() {
+                $('#loading').show();
+                
+                // Simulate Excel generation
+                setTimeout(function() {
+                    // Populate modal with sample data
+                    $('#modalFAR').text('2.35');
+                    $('#modalNOI').text('580,000');
+                    $('#modalCapRate').text('5.75');
+                    $('#modalTotalCost').text('8,500,000');
+                    $('#modalIRR').text('12.75');
+                    
+                    // Show the modal
+                    $('#task5').prop('checked', true);
+                    $('#excelGeneratedModal').modal('show');
+                    $('#loading').hide();
+                }, 2000);
+            });
+
+            // Download Excel button (simulated)
+            $('#downloadExcelBtn').on('click', function() {
+                alert('Excel download would start here. In a real application, this would generate and download the file.');
+            });
+
+            // Finish button
+            $('#finishBtn').on('click', function() {
+                alert('Project completed! In a real application, this would save the project and return to the dashboard.');
+            });
+        });
+    </script>
+</body>
+</html>
+                    <div class="card-body">
+                        <ul class="nav nav-pills flex-column" id="scrumSteps">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#step1"><i class="fas fa-map-marker-alt me-2"></i> Address Input</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#step2"><i class="fas fa-ruler-combined me-2"></i> Property Specs</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#step3"><i class="fas fa-sitemap me-2"></i> Unit Planning</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#step4"><i class="fas fa-chart-pie me-2"></i> Financial Analysis</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#step5"><i class="fas fa-file-excel me-2"></i> Proforma Output</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-tasks me-2"></i> Sprint Backlog
+                    </div>
+                    <div class="card-body">
+                        <div id="taskList">
+                            <div class="task-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task1">
+                                    <label class="form-check-label" for="task1">Enter property address</label>
+                                </div>
+                            </div>
+                            <div class="task-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task2">
+                                    <label class="form-check-label" for="task2">Set property specs</label>
+                                </div>
+                            </div>
+                            <div class="task-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task3">
+                                    <label class="form-check-label" for="task3">Design unit mix</label>
+                                </div>
+                            </div>
+                            <div class="task-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task4">
+                                    <label class="form-check-label" for="task4">Enter financial data</label>
+                                </div>
+                            </div>
+                            <div class="task-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task5">
+                                    <label class="form-check-label" for="task5">Generate proforma</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="tab-content">
+                    <!-- Step 1: Address Input -->
+                    <div class="tab-pane fade show active" id="step1">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-map-marker-alt me-2"></i> Step 1: Property Address
+                            </div>
+                            <div class="card-body">
+                                <form id="addressForm">
+                                    <div class="mb-3">
+                                        <label for="propertyAddress" class="form-label">Street Address</label>
+                                        <input type="text" class="form-control" id="propertyAddress" placeholder="123 Main St">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-5 mb-3">
+                                            <label for="propertyCity" class="form-label">City</label>
+                                            <input type="text" class="form-control" id="propertyCity" placeholder="New York">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="propertyState" class="form-label">State</label>
+                                            <select class="form-select" id="propertyState">
+                                                <option selected disabled>Select State</option>
+                                                <option value="AL">Alabama</option>
+                                                <option value="AK">Alaska</option>
+                                                <option value="AZ">Arizona</option>
+                                                <option value="CA">California</option>
+                                                <option value="CO">Colorado</option>
+                                                <option value="CT">Connecticut</option>
+                                                <option value="NY">New York</option>
+                                                <option value="TX">Texas</option>
+                                                <!-- Other states would be added here -->
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="propertyZip" class="form-label">Zip Code</label>
+                                            <input type="text" class="form-control" id="propertyZip" placeholder="10001">
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-secondary" disabled>Back</button>
+                                        <button type="button" class="btn btn-primary" id="step1Next">Next <i class="fas fa-arrow-right"></i></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Property Specifications -->
+                    <div class="tab-pane fade" id="step2">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-ruler-combined me-2"></i> Step 2: Property Specifications
+                            </div>
+                            <div class="card-body">
+                                <form id="propertySpecsForm">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="lotSize" class="form-label">Lot Size (sq ft)</label>
+                                            <input type="number" class="form-control" id="lotSize" placeholder="10000">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="zoning" class="form-label">Zoning Classification</label>
+                                            <select class="form-select" id="zoning">
+                                                <option selected disabled>Select Zoning</option>
+                                                <option value="R1">R1 - Single Family Residential</option>
+                                                <option value="R2">R2 - Two Family Residential</option>
+                                                <option value="R3">R3 - Multi-Family Residential</option>
+                                                <option value="C1">C1 - Neighborhood Commercial</option>
+                                                <option value="C2">C2 - General Commercial</option>
+                                                <option value="MU">MU - Mixed Use</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="maxFAR" class="form-label">Maximum FAR Allowed</label>
+                                            <input type="number" step="0.1" class="form-control" id="maxFAR" placeholder="2.5">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="maxHeight" class="form-label">Maximum Height (ft)</label>
+                                            <input type="number" class="form-control" id="maxHeight" placeholder="60">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="setbackFront" class="form-label">Front Setback (ft)</label>
+                                            <input type="number" class="form-control" id="setbackFront" placeholder="20">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="setbackRear" class="form-label">Rear Setback (ft)</label>
+                                            <input type="number" class="form-control" id="setbackRear" placeholder="15">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="setbackLeft" class="form-label">Left Setback (ft)</label>
+                                            <input type="number" class="form-control" id="setbackLeft" placeholder="10">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="setbackRight" class="form-label">Right Setback (ft)</label>
+                                            <input type="number" class="form-control" id="setbackRight" placeholder="10">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="minParkingRatio" class="form-label">Minimum Parking Ratio</label>
+                                            <input type="number" step="0.1" class="form-control" id="minParkingRatio" placeholder="1.5">
+                                            <small class="text-muted">Parking spaces per unit</small>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="currentUse" class="form-label">Current Use</label>
+                                            <select class="form-select" id="currentUse">
+                                                <option selected disabled>Select Current Use</option>
+                                                <option value="vacant">Vacant Land</option>
+                                                <option value="sfr">Single Family Residential</option>
+                                                <option value="mfr">Multi-Family Residential</option>
+                                                <option value="retail">Retail</option>
+                                                <option value="office">Office</option>
+                                                <option value="industrial">Industrial</option>
+                                                <option value="mixed">Mixed Use</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <button type="button" class="btn btn-secondary" id="step2Back"><i class="fas fa-arrow-left"></i> Back</button>
+                                        <button type="button" class="btn btn-primary" id="step2Next">Next <i class="fas fa-arrow-right"></i></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Unit Planning -->
+                    <div class="tab-pane fade" id="step3">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-sitemap me-2"></i> Step 3: Unit Planning</span>
+                                    <button class="btn btn-sm btn-outline-primary" id="calculateFARBtn">
+                                        <i class="fas fa-calculator me-1"></i> Calculate FAR
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-4">
+                                    <div class="col-md-12">
+                                        <h5 class="section-title">Recommended Functional Uses</h5>
+                                        <div class="alert alert-success" id="farAnalysisResult">
+                                            <div class="d-flex">
+                                                <div class="me-3">
+                                                    <i class="fas fa-chart-line fa-2x"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="alert-heading">FAR Analysis Results</h5>
+                                                    <p>Based on your property specifications:</p>
+                                                    <ul>
+                                                        <li><strong>Maximum Buildable Area:</strong> <span id="maxBuildableArea">0</span> sq ft</li>
+                                                        <li><strong>Current FAR:</strong> <span id="currentFAR">0</span></li>
+                                                        <li><strong>Potential FAR Increase:</strong> <span id="farIncrease">0%</span></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-12">
+                                        <h5 class="section-title">Select Optimal Functional Use</h5>
+                                        <div class="row" id="functionalUseOptions">
+                                            <div class="col-md-4 mb-3">
+                                                <div class="card usage-card" data-usage="residential">
+                                                    <div class="card-body text-center">
+                                                        <i class="fas fa-home fa-3x mb-3 text-primary"></i>
+                                                        <h5>Residential</h5>
+                                                        <p class="mb-0 text-muted">Multi-family apartments</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="card usage-card" data-usage="mixed">
+                                                    <div class="card-body text-center">
+                                                        <i class="fas fa-building fa-3x mb-3 text-success"></i>
+                                                        <h5>Mixed Use</h5>
+                                                        <p class="mb-0 text-muted">Retail + Residential</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="card usage-card" data-usage="commercial">
+                                                    <div class="card-body text-center">
+                                                        <i class="fas fa-store fa-3x mb-3 text-warning"></i>
+                                                        <h5>Commercial</h5>
+                                                        <p class="mb-0 text-muted">Retail or Office space</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="unitMixContainer">
+                                    <h5 class="section-title">Unit Mix and Configuration</h5>
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <div class="d-flex justify-content-end">
+                                                <button class="btn btn-sm btn-outline-primary" id="addUnitBtn">
+                                                    <i class="fas fa-plus me-1"></i> Add Unit Type
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="unitList">
+                                        <div class="unit-card">
+                                            <div class="row">
+                                                <div class="col-md-3 mb-3">
+                                                    <label class="form-label">Unit Type</label>
+                                                    <select class="form-select unit-type">
+                                                        <option value="studio">Studio</option>
+                                                        <option value="1br">1 Bedroom</option>
+                                                        <option value="2br">2 Bedroom</option>
+                                                        <option value="3br">3 Bedroom</option>
+                                                        <option value="retail">Retail</option>
+                                                        <option value="office">Office</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3 mb-3">
+                                                    <label class="form-label">Size (sq ft)</label>
+                                                    <input type="number" class="form-control unit-size" placeholder="600">
+                                                </div>
+                                                <div class="col-md-2 mb-3">
+                                                    <label class="form-label">Quantity</label>
+                                                    <input type="number" class="form-control unit-quantity" value="1">
+                                                </div>
+                                                <div class="col-md-3 mb-3">
+                                                    <label class="form-label">Rent/Price ($/month)</label>
+                                                    <input type="number" class="form-control unit-rent" placeholder="2000">
+                                                </div>
+                                                <div class="col-md-1 mb-3 d-flex align-items-end">
+                                                    <button class="btn btn-sm btn-outline-danger remove-unit-btn">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <h5 class="section-title">Common Areas</h5>
+                                        <div class="row">
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label">Lobby (sq ft)</label>
+                                                <input type="number" class="form-control" id="lobbySqft" placeholder="500">
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label">Amenity Space (sq ft)</label>
+                                                <input type="number" class="form-control" id="amenitySqft" placeholder="1000">
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label">Circulation (sq ft)</label>
+                                                <input type="number" class="form-control" id="circulationSqft" placeholder="800">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="alert alert-info" id="unitSummary">
+                                            <h5>Unit Mix Summary</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Total Units:</strong> <span id="totalUnits">0</span></p>
+                                                    <p><strong>Total Residential Area:</strong> <span id="totalResidentialArea">0</span> sq ft</p>
+                                                    <p><strong>Total Commercial Area:</strong> <span id="totalCommercialArea">0</span> sq ft</p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Total Common Area:</strong> <span id="totalCommonArea">0</span> sq ft</p>
+                                                    <p><strong>Total Building Area:</strong> <span id="totalBuildingArea">0</span> sq ft</p>
+                                                    <p><strong>Current FAR Utilization:</strong> <span id="farUtilization">0%</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-4">
+                                    <button type="button" class="btn btn-secondary" id="step3Back"><i class="fas fa-arrow-left"></i> Back</button>
+                                    <button type="button" class="btn btn-primary" id="step3Next">Next <i class="fas fa-arrow-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Financial Analysis -->
+                    <div class="tab-pane fade" id="step4">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-chart-pie me-2"></i> Step 4: Financial Analysis
+                            </div>
+                            <div class="card-body">
+                                <ul class="nav nav-tabs mb-4" id="financialTabs">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" data-bs-toggle="tab" href="#incomeTab">Income</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#expensesTab">Expenses</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#developmentTab">Development</a>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content">
+                                    <!-- Income Tab -->
+                                    <div class="tab-pane fade show active" id="incomeTab">
+                                        <h5 class="section-title">Rental Income</h5>
+                                        <div class="table-responsive mb-4">
+                                            <table class="table table-bordered" id="rentalIncomeTable">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Unit Type</th>
+                                                        <th>Units</th>
+                                                        <th>Rent/mo</th>
+                                                        <th>Annual Rent</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- This will be populated dynamically -->
+                                                </tbody>
+                                                <tfoot class="table-light">
+                                                    <tr>
+                                                        <th colspan="3">Total Potential Gross Income</th>
+                                                        <th id="totalPotentialGrossIncome">$0</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Vacancy Rate (%)</label>
+                                                <input type="number" class="form-control" id="vacancyRate" placeholder="5" value="5">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Other Income ($/year)</label>
+                                                <input type="number" class="form-control" id="otherIncome" placeholder="10000">
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-primary">
+                                            <h5>Income Summary</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Potential Gross Income:</strong> $<span id="pgiSummary">0</span></p>
+                                                    <p><strong>Vacancy Loss:</strong> $<span id="vacancyLoss">0</span></p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Other Income:</strong> $<span id="otherIncomeSummary">0</span></p>
+                                                    <p><strong>Effective Gross Income:</strong> $<span id="effectiveGrossIncome">0</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Expenses Tab -->
+                                    <div class="tab-pane fade" id="expensesTab">
+                                        <h5 class="section-title">Operating Expenses</h5>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Property Taxes ($/year)</label>
+                                                <input type="number" class="form-control expense-item" id="propertyTaxes" placeholder="25000">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Insurance ($/year)</label>
+                                                <input type="number" class="form-control expense-item" id="insurance" placeholder="15000">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Utilities ($/year)</label>
+                                                <input type="number" class="form-control expense-item" id="utilities" placeholder="20000">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Repairs & Maintenance ($/year)</label>
+                                                <input type="number" class="form-control expense-item" id="repairsMaintenance" placeholder="18000">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Property Management (%)</label>
+                                                <input type="number" class="form-control" id="propertyManagementPct" placeholder="3" value="3">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Other Expenses ($/year)</label>
+                                                <input type="number" class="form-control expense-item" id="otherExpenses" placeholder="10000">
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-warning">
+                                            <h5>Expense Summary</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Total Operating Expenses:</strong> $<span id="totalOpEx">0</span></p>
+                                                    <p><strong>OpEx Ratio (% of EGI):</strong> <span id="opExRatio">0</span>%</p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Net Operating Income:</strong> $<span id="netOperatingIncome">0</span></p>
+                                                    <p><strong>Cap Rate:</strong> <span id="capRate">0</span>%</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Development Tab -->
+                                    <div class="tab-pane fade" id="developmentTab">
+                                        <h5 class="section-title">Development Costs</h5>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Land Acquisition ($/sq ft)</label>
+                                                <input type="number" class="form-control" id="landCostPerSqFt" placeholder="100">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Construction Cost - Residential ($/sq ft)</label>
+                                                <input type="number" class="form-control" id="residentialConstructionCost" placeholder="250">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Construction Cost - Commercial ($/sq ft)</label>
+                                                <input type="number" class="form-control" id="commercialConstructionCost" placeholder="200">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Construction Cost - Common Areas ($/sq ft)</label>
+                                                <input type="number" class="form-control" id="commonAreaConstructionCost" placeholder="180">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Soft Costs (% of Hard Costs)</label>
+                                                <input type="number" class="form-control" id="softCostsPct" placeholder="20" value="20">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Development Fee (%)</label>
+                                                <input type="number" class="form-control" id="developmentFeePct" placeholder="5" value="5">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Contingency (%)</label>
+                                                <input type="number" class="form-control" id="contingencyPct" placeholder="10" value="10">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Financing Costs (%)</label>
+                                                <input type="number" class="form-control" id="financingCostsPct" placeholder="5" value="5">
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-info">
+                                            <h5>Development Cost Summary</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Land Cost:</strong> $<span id="totalLandCost">0</span></p>
+                                                    <p><strong>Hard Costs:</strong> $<span id="totalHardCosts">0</span></p>
+                                                    <p><strong>Soft Costs:</strong> $<span id="totalSoftCosts">0</span></p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Development Fee:</strong> $<span id="developmentFee">0</span></p>
+                                                    <p><strong>Contingency:</strong> $<span id="contingencyAmount">0</span></p>
+                                                    <p><strong>Total Project Cost:</strong> $<span id="totalProjectCost">0</span></p>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Cost per Gross SF:</strong> $<span id="costPerGrossSF">0</span></p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Development Yield:</strong> <span id="developmentYield">0</span>%</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-4">
+                                    <button type="button" class="btn btn-secondary" id="step4Back"><i class="fas fa-arrow-left"></i> Back</button>
+                                    <button type="button" class="btn btn-primary" id="step4Next">Next <i class="fas fa-arrow-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Financial Analysis -->
+                    <div class="tab-pane fade" id="step4">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-chart-pie me-2"></i> Step 4: Financial Analysis
+                            </div>
+                            <div class="card-body">
+                                <ul class="nav nav-tabs mb-4" id="financialTabs">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" data-bs-toggle="tab" href="#incomeTab">Income</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#expensesTab">Expenses</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#developmentTab">Development</a>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content">
+                                    <!-- Income Tab -->
+                                    <div class="tab-pane fade show active" id="incomeTab">
+                                        <h5 class="section-title">Rental Income</h5>
+                                        <div class="table-responsive mb-4">
+                                            <table class="table table-bordered" id="rentalIncomeTable">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Unit Type</th>
+                                                        <th>Units</th>
+                                                        <th>Rent/mo</th>
+                                                        <th>Annual Rent</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- This will be populated dynamically -->
+                                                </tbody>
+                                                <tfoot class="table-light">
+                                                    <tr>
+                                                        <th colspan="3">Total Potential Gross Income</th>
+                                                        <th id="totalPotentialGrossIncome">$0</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Vacancy Rate (%)</label>
+                                                <input type="number" class="form-control" id="vacancyRate" placeholder="5" value="5">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Other Income ($/year)</label>
+                                                <input type="number" class="form-control" id="otherIncome" placeholder="10000">
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-primary">
+                                            <h5>Income Summary</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Potential Gross Income:</strong> $<span id="pgiSummary">0</span></p>
+                                                    <p><strong>Vacancy Loss:</strong> $<span id="vacancyLoss">0</span></p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Other Income:</strong> $<span id="otherIncomeSummary">0</span></p>
+                                                    <p><strong>Effective Gross Income:</strong> $<span id="effectiveGrossIncome">0</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Expenses Tab -->
+                                    <div class="tab-pane fade" id="expensesTab">
+                                        <h5 class="section-title">Operating Expenses</h5>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Property Taxes ($/year)</label>
+                                                <input type="number" class="form-control expense-item" id="propertyTaxes" placeholder="25000">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Insurance ($/year)</label>
+                                                <input type="number" class="form-control expense-item" id="insurance" placeholder="15000">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Utilities ($/year)</label>
+                                                <input type="number" class="form-control expense-item" id="utilities" placeholder="20000">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Repairs & Maintenance ($/year)</label>
+                                                <input type="number" class="form-control expense-item" id="repairsMaintenance" placeholder="18000">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Property Management (%)</label>
+                                                <input type="number" class="form-control" id="propertyManagementPct" placeholder="3" value="3">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Other Expenses ($/year)</label>
+                                                <input type="number" class="form-control expense-item" id="otherExpenses" placeholder="10000">
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-warning">
+                                            <h5>Expense Summary</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Total Operating Expenses:</strong> $<span id="totalOpEx">0</span></p>
+                                                    <p><strong>OpEx Ratio (% of EGI):</strong> <span id="opExRatio">0</span>%</p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Net Operating Income:</strong> $<span id="netOperatingIncome">0</span></p>
+                                                    <p><strong>Cap Rate:</strong> <span id="capRate">0</span>%</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Development Tab -->
+                                    <div class="tab-pane fade" id="developmentTab">
+                                        <h5 class="section-title">Development Costs</h5>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Land Acquisition ($/sq ft)</label>
+                                                <input type="number" class="form-control" id="landCostPerSqFt" placeholder="100">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Construction Cost - Residential ($/sq ft)</label>
+                                                <input type="number" class="form-control" id="residentialConstructionCost" placeholder="250">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Construction Cost - Commercial ($/sq ft)</label>
+                                                <input type="number" class="form-control" id="commercialConstructionCost" placeholder="200">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Construction Cost - Common Areas ($/sq ft)</label>
+                                                <input type="number" class="form-control" id="commonAreaConstructionCost" placeholder="180">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Soft Costs (% of Hard Costs)</label>
+                                                <input type="number" class="form-control" id="softCostsPct" placeholder="20" value="20">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Development Fee (%)</label>
+                                                <input type="number" class="form-control" id="developmentFeePct" placeholder="5" value="5">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Contingency (%)</label>
+                                                <input type="number" class="form-control" id="contingencyPct" placeholder="10" value="10">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Financing Costs (%)</label>
+                                                <input type="number" class="form-control" id="financingCostsPct" placeholder="5" value="5">
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-info">
+                                            <h5>Development Cost Summary</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Land Cost:</strong> $<span id="totalLandCost">0</span></p>
+                                                    <p><strong>Hard Costs:</strong> $<span id="totalHardCosts">0</span></p>
+                                                    <p><strong>Soft Costs:</strong> $<span id="totalSoftCosts">0</span></p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Development Fee:</strong> $<span id="developmentFee">0</span></p>
+                                                    <p><strong>Contingency:</strong> $<span id="contingencyAmount">0</span></p>
+                                                    <p><strong>Total Project Cost:</strong> $<span id="totalProjectCost">0</span></p>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Cost per Gross SF:</strong> $<span id="costPerGrossSF">0</span></p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Development Yield:</strong> <span id="developmentYield">0</span>%</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
